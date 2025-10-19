@@ -1,0 +1,795 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ===== AUTHENTICATION & USER MANAGEMENT =====
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  password      String?
+  role          UserRole  @default(B2C)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  softDeleted   Boolean   @default(false)
+
+  // Profile information
+  profile       UserProfile?
+  b2bApplication B2BApplication?
+  
+  // Relations
+  accounts      Account[]
+  sessions      Session[]
+  addresses     Address[]
+  orders        Order[]
+  auditLogs     AuditLog[]
+  otps          OTP[]
+  couponRedemptions CouponRedemption[]
+  wishlistItems WishlistItem[]
+  savedPayments SavedPayment[]
+  b2bQuotes     B2BQuote[]
+  supportTickets SupportTicket[]
+  assignedTickets SupportTicket[] @relation("AssignedTickets")
+  ticketReplies TicketReply[]
+  adminRole     AdminRole?
+  updatedToggles SystemToggle[]
+}
+
+model UserProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  firstName         String?
+  lastName          String?
+  phone             String?
+  address           String?
+  city              String?
+  state             String?
+  country           String?
+  postalCode        String?
+  preferredLanguage String   @default("en")
+  defaultCurrency   String   @default("INR")
+  dateOfBirth       DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model B2BApplication {
+  id                String            @id @default(cuid())
+  userId            String            @unique
+  businessName      String
+  businessType      String
+  gstVatNumber      String?
+  taxId             String?
+  businessAddress   String
+  businessCity      String
+  businessState     String
+  businessCountry   String
+  businessPostalCode String
+  contactPerson     String
+  contactPhone      String
+  website           String?
+  expectedMonthlyVolume String
+  status            B2BApplicationStatus @default(PENDING)
+  adminNotes        String?
+  reviewedAt        DateTime?
+  reviewedBy        String?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===== PRODUCT CATALOG & INVENTORY =====
+
+model Product {
+  id                String    @id @default(cuid())
+  name              String
+  description       String?   @db.Text
+  category          String
+  images            String[]  @default([])
+  organicCertified  Boolean   @default(false)
+  defaultCurrency   String    @default("INR")
+  status            ProductStatus @default(ACTIVE)
+  softDeleted       Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  variants          ProductVariant[]
+  translations      ProductTranslation[]
+  auditLogs         AuditLog[]
+
+  @@index([category])
+  @@index([status])
+}
+
+model ProductTranslation {
+  id          String   @id @default(cuid())
+  productId   String
+  language    String   // en, ar, hi
+  name        String
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, language])
+  @@index([language])
+}
+
+model ProductVariant {
+  id                String    @id @default(cuid())
+  productId         String
+  weightInGrams     Int
+  basePriceINR      Decimal   @db.Decimal(10, 2)
+  stockQty          Int       @default(0)
+  minOrderQty       Int       @default(1)
+  maxOrderQty       Int?
+  status            VariantStatus @default(ACTIVE)
+  softDeleted       Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  product           Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  lots              Lot[]
+  orderItems        OrderItem[]
+  currencyPrices    CurrencyPrice[]
+  inventoryLedger   InventoryLedger[]
+  wishlistItems     WishlistItem[]
+  b2bQuoteItems     B2BQuoteItem[]
+
+  @@index([productId])
+  @@index([status])
+}
+
+model CurrencyPrice {
+  id            String   @id @default(cuid())
+  variantId     String
+  currency      String   // INR, QAR, AED, SAR, OMR
+  price         Decimal  @db.Decimal(10, 2)
+  lastUpdated   DateTime @default(now())
+  createdAt     DateTime @default(now())
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([variantId, currency])
+  @@index([currency])
+}
+
+model Lot {
+  id              String    @id @default(cuid())
+  variantId       String
+  batchCode       String    @unique
+  originEstate    String
+  harvestedOn     DateTime
+  bestBefore      DateTime
+  qcNotes         String?   @db.Text
+  status          LotStatus @default(ACTIVE)
+  qtyAvailable    Int       @default(0)
+  qtyReserved     Int       @default(0)
+  warehouseId     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  variant         ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  orderItems      OrderItem[]
+  inventoryLedger InventoryLedger[]
+
+  @@index([variantId])
+  @@index([status])
+  @@index([batchCode])
+}
+
+// ===== ORDER MANAGEMENT =====
+
+model Order {
+  id                String      @id @default(cuid())
+  userId            String
+  orderNumber       String      @unique
+  status            OrderStatus @default(PENDING)
+  totalAmount       Decimal     @db.Decimal(10, 2)
+  currency          String      @default("INR")
+  shippingAddressId String
+  billingAddressId  String
+  notes             String?     @db.Text
+  softDeleted       Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shippingAddress   Address     @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+  billingAddress    Address     @relation("BillingAddress", fields: [billingAddressId], references: [id])
+  items             OrderItem[]
+  payments          Payment[]
+  shipments         Shipment[]
+  auditLogs         AuditLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([orderNumber])
+}
+
+model OrderItem {
+  id            String   @id @default(cuid())
+  orderId       String
+  variantId     String
+  lotId         String?
+  quantity      Int
+  unitPrice     Decimal  @db.Decimal(10, 2)
+  totalPrice    Decimal  @db.Decimal(10, 2)
+  discountId    String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant       ProductVariant @relation(fields: [variantId], references: [id])
+  lot           Lot?     @relation(fields: [lotId], references: [id])
+  discount      DiscountCode? @relation(fields: [discountId], references: [id])
+  couponRedemption CouponRedemption?
+
+  @@index([orderId])
+  @@index([variantId])
+}
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String
+  type        AddressType @default(SHIPPING)
+  firstName   String
+  lastName    String
+  company     String?
+  address1    String
+  address2    String?
+  city        String
+  state       String
+  country     String
+  postalCode  String
+  phone       String?
+  isDefault   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  shippingOrders Order[] @relation("ShippingAddress")
+  billingOrders  Order[] @relation("BillingAddress")
+
+  @@index([userId])
+}
+
+// ===== PAYMENT & DISCOUNTS =====
+
+model Payment {
+  id            String        @id @default(cuid())
+  orderId       String
+  providerId    String        // Stripe, Razorpay, etc.
+  amount        Decimal       @db.Decimal(10, 2)
+  currency      String
+  status        PaymentStatus @default(PENDING)
+  signature     String?
+  metadata      Json?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([providerId])
+}
+
+model DiscountCode {
+  id                String    @id @default(cuid())
+  code              String    @unique
+  name              String
+  description       String?   @db.Text
+  type              DiscountType
+  value             Decimal   @db.Decimal(10, 2)
+  minOrderValue     Decimal?  @db.Decimal(10, 2)
+  maxDiscountAmount Decimal?  @db.Decimal(10, 2)
+  usageLimit        Int?
+  usedCount         Int       @default(0)
+  validFrom         DateTime
+  validUntil        DateTime?
+  isActive          Boolean   @default(true)
+  isB2BOnly         Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  // Relations
+  orderItems        OrderItem[]
+  couponRedemptions CouponRedemption[]
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model CouponRedemption {
+  id            String   @id @default(cuid())
+  userId        String
+  orderItemId   String
+  discountId    String
+  amount        Decimal  @db.Decimal(10, 2)
+  createdAt     DateTime @default(now())
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  orderItem OrderItem    @relation(fields: [orderItemId], references: [id], onDelete: Cascade)
+  discount  DiscountCode @relation(fields: [discountId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, orderItemId])
+  @@index([userId])
+}
+
+// ===== INVENTORY MANAGEMENT =====
+
+model InventoryLedger {
+  id            String          @id @default(cuid())
+  variantId     String
+  lotId         String?
+  changeType    InventoryChangeType
+  refType       InventoryRefType
+  quantity      Int
+  reason        String?
+  warehouseId   String?
+  metadata      Json?
+  createdAt     DateTime        @default(now())
+
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+  lot     Lot?           @relation(fields: [lotId], references: [id])
+
+  @@index([variantId])
+  @@index([changeType])
+  @@index([createdAt])
+}
+
+model Shipment {
+  id              String        @id @default(cuid())
+  orderId         String
+  trackingNumber  String?       @unique
+  carrier         String?
+  status          ShipmentStatus @default(PENDING)
+  shippedAt       DateTime?
+  deliveredAt     DateTime?
+  notes           String?       @db.Text
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([trackingNumber])
+}
+
+// ===== CURRENCY & TRANSLATIONS =====
+
+model CurrencyRate {
+  id          String   @id @default(cuid())
+  fromCurrency String
+  toCurrency   String
+  rate        Decimal  @db.Decimal(15, 8)
+  lastUpdated DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  @@unique([fromCurrency, toCurrency])
+  @@index([lastUpdated])
+}
+
+model TranslationKey {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  language  String
+  value     String   @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([key, language])
+  @@index([language])
+}
+
+// ===== AUDIT & SYSTEM =====
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  entity    String
+  entityId  String
+  action    String
+  metadata  Json?
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entity, entityId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model OTP {
+  id        String   @id @default(cuid())
+  email     String
+  code      String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [email], references: [email], onDelete: Cascade)
+
+  @@index([email, code])
+  @@index([expiresAt])
+}
+
+// ===== ENUMS =====
+
+enum UserRole {
+  ADMIN
+  B2B
+  B2C
+}
+
+enum B2BApplicationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}
+
+enum VariantStatus {
+  ACTIVE
+  INACTIVE
+  OUT_OF_STOCK
+}
+
+enum LotStatus {
+  ACTIVE
+  EXPIRED
+  BLOCKED
+  QUARANTINE
+}
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum AddressType {
+  SHIPPING
+  BILLING
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FIXED_AMOUNT
+  FREE_SHIPPING
+}
+
+enum InventoryChangeType {
+  IN
+  OUT
+  ADJUSTMENT
+  TRANSFER
+  EXPIRED
+  DAMAGED
+}
+
+enum InventoryRefType {
+  ORDER
+  B2B
+  ADMIN
+  SYSTEM
+  TRANSFER
+}
+
+enum ShipmentStatus {
+  PENDING
+  PACKED
+  IN_TRANSIT
+  OUT_FOR_DELIVERY
+  DELIVERED
+  FAILED
+  RETURNED
+}
+
+// ===== PHASE 8: USER ACCOUNT & B2B MODELS =====
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  variantId String
+  quantity  Int      @default(1)
+  notes     String?  @db.Text
+  isPublic  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, variantId])
+  @@index([userId])
+  @@index([isPublic])
+}
+
+model SavedPayment {
+  id            String   @id @default(cuid())
+  userId        String
+  provider      String   // razorpay, stripe, etc.
+  token         String   // encrypted payment token
+  last4Digits   String   // last 4 digits of card
+  expiryMonth   Int?
+  expiryYear    Int?
+  cardType      String?  // visa, mastercard, etc.
+  isDefault     Boolean  @default(false)
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+}
+
+model B2BQuote {
+  id                String        @id @default(cuid())
+  userId            String
+  quoteNumber       String        @unique
+  status            B2BQuoteStatus @default(REQUESTED)
+  totalAmount       Decimal?      @db.Decimal(10, 2)
+  currency          String        @default("INR")
+  validUntil        DateTime?
+  adminNotes        String?       @db.Text
+  customerNotes     String?       @db.Text
+  reviewedAt        DateTime?
+  reviewedBy        String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  // Relations
+  user        User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items       B2BQuoteItem[]
+  auditLogs   AuditLog[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([quoteNumber])
+}
+
+model B2BQuoteItem {
+  id        String   @id @default(cuid())
+  quoteId   String
+  variantId String
+  quantity  Int
+  unitPrice Decimal  @db.Decimal(10, 2)
+  totalPrice Decimal @db.Decimal(10, 2)
+  notes     String?  @db.Text
+  createdAt DateTime @default(now())
+
+  // Relations
+  quote   B2BQuote       @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId])
+  @@index([variantId])
+}
+
+enum B2BQuoteStatus {
+  REQUESTED
+  REVIEWED
+  APPROVED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+// ===== PHASE 9: ADMIN PANEL MODELS =====
+
+model SupportTicket {
+  id            String            @id @default(cuid())
+  ticketNumber  String            @unique
+  userId        String?
+  customerName  String
+  customerEmail String
+  subject       String
+  description   String            @db.Text
+  status        TicketStatus      @default(OPEN)
+  priority      TicketPriority    @default(MEDIUM)
+  category      TicketCategory
+  assignedTo    String?
+  tags          String[]          @default([])
+  isInternal    Boolean           @default(false)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  resolvedAt    DateTime?
+
+  // Relations
+  user          User?             @relation(fields: [userId], references: [id], onDelete: SetNull)
+  assignedUser  User?             @relation("AssignedTickets", fields: [assignedTo], references: [id], onDelete: SetNull)
+  replies       TicketReply[]
+  auditLogs     AuditLog[]
+
+  @@index([status])
+  @@index([priority])
+  @@index([assignedTo])
+  @@index([createdAt])
+}
+
+model TicketReply {
+  id            String        @id @default(cuid())
+  ticketId      String
+  userId        String?
+  isInternal    Boolean       @default(false)
+  message       String        @db.Text
+  attachments   String[]      @default([])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // Relations
+  ticket        SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+model AdminRole {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  description   String?
+  permissions   Json     // Array of permission strings
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  users         User[]
+
+  @@index([isActive])
+}
+
+model SystemToggle {
+  id            String   @id @default(cuid())
+  key           String   @unique
+  name          String
+  description   String?
+  value         Boolean  @default(false)
+  category      String
+  isActive      Boolean  @default(true)
+  updatedBy     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  updatedUser   User?    @relation(fields: [updatedBy], references: [id], onDelete: SetNull)
+
+  @@index([category])
+  @@index([isActive])
+}
+
+model CMSPage {
+  id            String      @id @default(cuid())
+  title         String
+  slug          String      @unique
+  content       Json        // Rich content structure
+  metaTitle     String?
+  metaDescription String?
+  isPublished   Boolean     @default(false)
+  publishedAt   DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  // Relations
+  translations  CMSPageTranslation[]
+  auditLogs     AuditLog[]
+
+  @@index([slug])
+  @@index([isPublished])
+}
+
+model CMSPageTranslation {
+  id          String   @id @default(cuid())
+  pageId      String
+  language    String   // en, ar, hi
+  title       String
+  content     Json
+  metaTitle   String?
+  metaDescription String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  page CMSPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+
+  @@unique([pageId, language])
+  @@index([language])
+}
+
+// ===== ENUMS FOR PHASE 9 =====
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  PENDING_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketCategory {
+  GENERAL
+  ORDER_ISSUE
+  PRODUCT_QUESTION
+  B2B_INQUIRY
+  TECHNICAL_SUPPORT
+  BILLING
+  REFUND
+  OTHER
+}

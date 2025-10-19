@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: newhill-postgres
+    environment:
+      POSTGRES_DB: newhill_spices
+      POSTGRES_USER: newhill
+      POSTGRES_PASSWORD: newhill_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infrastructure/init-scripts:/docker-entrypoint-initdb.d
+    networks:
+      - newhill-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: newhill-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - newhill-network
+
+  # Web Application
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    container_name: newhill-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://newhill:newhill_password@postgres:5432/newhill_spices
+      - REDIS_URL=redis://redis:6379
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - newhill-network
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+
+  # API Application
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: newhill-api
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://newhill:newhill_password@postgres:5432/newhill_spices
+      - REDIS_URL=redis://redis:6379
+      - JWT_SECRET=your-jwt-secret-key
+      - AWS_REGION=us-east-1
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - newhill-network
+    volumes:
+      - ./apps/api:/app
+      - /app/node_modules
+
+  # Worker Application
+  worker:
+    build:
+      context: ./apps/worker
+      dockerfile: Dockerfile
+    container_name: newhill-worker
+    ports:
+      - "3002:3002"
+    environment:
+      - NODE_ENV=development
+      - DATABASE_URL=postgresql://newhill:newhill_password@postgres:5432/newhill_spices
+      - REDIS_URL=redis://redis:6379
+      - AWS_REGION=us-east-1
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - newhill-network
+    volumes:
+      - ./apps/worker:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  newhill-network:
+    driver: bridge

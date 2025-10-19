@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  # Override for local development with hot reload
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./apps/web:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - WATCHPACK_POLLING=true
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./apps/api:/app
+      - /app/node_modules
+      - /app/dist
+
+  worker:
+    build:
+      context: ./apps/worker
+      dockerfile: Dockerfile.dev
+    volumes:
+      - ./apps/worker:/app
+      - /app/node_modules
+      - /app/dist

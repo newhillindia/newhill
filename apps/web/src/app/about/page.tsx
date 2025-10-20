@@ -81,10 +81,10 @@ export default function About() {
 
       {/* Founder Story */}
       <section className="section-padding bg-white">
-        <div className="container-max">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mbm-6">
+        <div className="container-max            <div>
+              <h2 className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mb-6">
+                Meet Our Founder
+              </h2>ont-bold text-neutral-900 mbm-6">
                 Meet Our Founder
               </h2>
               <div className="space-y-4 text-neutral-600 leading-relaxed">

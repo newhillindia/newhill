@@ -227,19 +227,23 @@ export default function ProductCard({
   }
 
   return (
-    <div className={`product-card card-hover group relative ${className}`}>
+    <article className={`product-card card-hover group relative ${className}`} aria-label={product.name.en}>
       {/* Image Container */}
-      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-neutral-100">
-        <Link href={`/products/${product.slug}`}>
+      <div className="relative aspect-square overflow-hidden rounded-t-lg bg-neutral-100 ring-1 ring-neutral-200 group-hover:ring-emerald-300 transition-all duration-300">
+        <Link href={`/products/${product.slug}`} aria-label={`View ${product.name.en}`}>
           <Image
             src={product.images[0] || '/images/placeholder-product.jpg'}
             alt={product.name.en || 'Product image'}
             fill
-            className={`object-cover transition-transform duration-300 group-hover:scale-105 ${
-              isImageLoading ? 'blur-sm' : 'blur-0'
+            className={`object-cover transition-all duration-500 ease-out group-hover:scale-110 ${
+              isImageLoading ? 'blur-sm opacity-0' : 'blur-0 opacity-100'
             }`}
             onLoad={() => setIsImageLoading(false)}
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            quality={85}
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAwIiBoZWlnaHQ9IjQwMCIgZmlsbD0iI2YzZjRmNiIvPjwvc3ZnPg=="
           />
         </Link>
 
@@ -308,8 +312,8 @@ export default function ProductCard({
         </div>
 
         {/* Product Name */}
-        <Link href={`/products/${product.slug}`}>
-          <h3 className="font-heading text-lg font-semibold text-neutral-900 mb-2 line-clamp-2 hover:text-emerald-600 transition-colors duration-200">
+        <Link href={`/products/${product.slug}`} className="group/title">
+          <h3 className="font-heading text-lg font-semibold text-neutral-900 mb-2 line-clamp-2 group-hover/title:text-emerald-600 transition-colors duration-200">
             {product.name.en || 'Product Name'}
           </h3>
         </Link>

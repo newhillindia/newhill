@@ -1,16 +1,29 @@
-FROM node:lts-alpine
-ENV NODE_ENV=production
+# ---- Base ----
+FROM node:lts-alpine AS base
 WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
-# 🟢 Install turbo globally
-RUN npm install -g turbo
+# Copy and install dependencies
+COPY package*.json ./
+RUN npm install --include=dev
 
-COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
-RUN npm install --production --silent && mv node_modules ../
+# Copy all source files
 COPY . .
 
-EXPOSE 3000
-RUN chown -R node /usr/src/app
+# Build with Turbo
+RUN npx turbo run build --filter=...
+
+# ---- Runner ----
+FROM node:lts-alpine AS runner
+WORKDIR /usr/src/app
+ENV NODE_ENV=production
+
+# Copy only necessary files from builder
+COPY --from=base /usr/src/app ./
+
+# Drop privileges for security
 USER node
+EXPOSE 3000
+
 CMD ["npm", "start"]
 

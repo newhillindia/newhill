@@ -1,7 +1,51 @@
-// Re-export all API types
+// Public API surface: export from domain modules while avoiding duplicate names
+
+// Export everything from API (source of truth for shared cross-domain names)
 export * from './api';
-export * from './payment';
-export * from './shipping';
+
+// Payment domain: export items excluding names that also exist in './api'
+export type {
+  PaymentProvider,
+  RegionConfig,
+  PaymentRequest,
+  PaymentItem,
+  PaymentResponse,
+  PaymentWebhook,
+  PaymentAdapter,
+  PaymentConfig,
+} from './payment';
+export {
+  PaymentError,
+  PaymentValidationError,
+  PaymentProviderError,
+  PaymentTimeoutError,
+  PaymentRequestSchema,
+  PaymentWebhookSchema,
+} from './payment';
+
+// Shipping domain: export items excluding names that also exist in './api'
+export type {
+  ShippingProvider,
+  ShipmentStatus,
+  ShippingRequest,
+  ShippingItem,
+  ShippingAddress,
+  ShippingResponse,
+  ShippingUpdate,
+  ShippingWebhook,
+  ShippingConnector,
+  ShippingRate,
+  ShippingConfig,
+} from './shipping';
+export {
+  ShippingError,
+  ShippingValidationError,
+  ShippingProviderError,
+  ShippingTimeoutError,
+  ShippingRequestSchema,
+  ShippingWebhookSchema,
+  SHIPPING_METHODS,
+} from './shipping';
 
 // Legacy types for backward compatibility
 export interface LegacyProduct {

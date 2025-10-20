@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Facebook, Twitter, Instagram, Youtube, Mail, Phone, MapPin } from 'lucide-react';
 
 interface FooterProps {
@@ -67,9 +68,15 @@ export default function Footer({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-full flex items-center justify-center shadow-md">
-                <span className="text-white font-bold text-lg">N</span>
+            <div className="flex items-center space-x-3">
+              <div className="relative w-12 h-12">
+                <Image
+                  src="https://i.ibb.co/4ZWLwbf6/NHS-White-3x.png"
+                  alt="Newhill Spices Logo"
+                  width={48}
+                  height={48}
+                  className="object-contain"
+                />
               </div>
               <span className="font-heading text-xl font-bold text-white">
                 Newhill Spices

@@ -62,11 +62,18 @@ export default function Header({
       >
         <div className="container-max">
           <div className="flex items-            {/* Logo */}
-            <Link href="/" className="flex items-center space-x-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-lg" aria-label="Newhill Spices Home">
-              <div className="w-10 h-10 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-full flex items-center justify-center shadow-md transition-transform hover:scale-105">
-                <span className="text-white font-bold text-lg">N</span>
+            <Link href="/" className="flex items-center space-x-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-lg group" aria-label="Newhill Spices Home">
+              <div className="relative w-12 h-12 transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src="https://i.ibb.co/4ZWLwbf6/NHS-White-3x.png"
+                  alt="Newhill Spices Logo"
+                  width={48}
+                  height={48}
+                  className="object-contain"
+                  priority
+                />
               </div>
-              <span className="font-heading text-xl font-bold text-emerald-600 hidden sm:block">
+              <span className="font-heading text-xl font-bold text-emerald-600 hidden sm:block transition-colors duration-200 group-hover:text-emerald-700">
                 Newhill Spices
               </span>
             </Link>  Newhill            {/* Desktop Navigation */}

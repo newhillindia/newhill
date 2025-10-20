@@ -3,12 +3,14 @@ FROM node:lts-alpine AS base
 WORKDIR /usr/src/app
 ENV NODE_ENV=production
 
-# Install Turbo globally (optional) and copy package files
-COPY package*.json ./
-RUN npm install --include=dev
+# Install dependencies for all workspaces with proper caching
+COPY package.json ./
+COPY turbo.json ./
+COPY apps ./apps
+COPY packages ./packages
 
-# Copy all source files
-COPY . .
+# Install with workspaces, include dev deps for building
+RUN npm install --workspaces --include=dev
 
 # Build all workspaces
 RUN npx turbo run build

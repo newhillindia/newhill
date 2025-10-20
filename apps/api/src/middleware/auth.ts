@@ -17,13 +17,17 @@ export interface JWTPayload {
   email: string;
   role: UserRole;
   permissions: Permission[];
-  iat: number;
-  exp: number;
-}
-
-export class AuthMiddleware {
-  private static jwtSecret = process.env.JWT_SECRET || 'your-secret-key';
+  iat: number;export class AuthMiddleware {
+  private static jwtSecret: string;
   private static jwtExpiry = process.env.JWT_EXPIRY || '7d';
+
+  static {
+    // Validate JWT_SECRET on class initialization
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET environment variable is required for security');
+    }
+    this.jwtSecret = process.env.JWT_SECRET;
+  }s.env.JWT_EXPIRY || '7d';
 
   /**
    * Generate JWT token for user

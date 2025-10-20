@@ -127,23 +127,57 @@ export default function Home() {
   }, []);
 
   const handleSearch = (query: string) => {
-    console.log('Search query:', query);
-    // Implement search functionality
+    // Navigate to search page with query
+    window.location.href = `/products?q=${encodeURIComponent(query)}`;
   };
 
   const handleCTAClick = (ctaType: 'primary' | 'secondary') => {
-    console.log('CTA clicked:', ctaType);
-    // Track analytics
+    // Track analytics if PostHog is configured
+    if (typeof window !== 'undefined' && (window as any).posthog) {
+      (window as any).posthog.capture('hero_cta_clicked', { cta_type: ctaType });
+    }
   };
 
-  const handleAddToCart = (productId: string, variantId?: string) => {
-    console.log('Add to cart:', productId, variantId);
-    // Implement add to cart
+  const handleAddToCart = async (productId: string, variantId?: string) => {
+    try {
+      // Implement add to cart logic
+      const response = await fetch('/api/v1/cart', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId, variantId, quantity: 1 }),
+      });
+      
+      if (response.ok) {
+        // Show success message (could use toast notification)
+        alert('Product added to cart!');
+      }
+    } catch (error) {
+      // Handle error silently or show error message
+      console.error('Error adding to cart:', error);
+    }
   };
 
-  const handleAddToWishlist = (productId: string) => {
-    console.log('Add to wishlist:', productId);
-    // Implement add to wishlist
+  const handleAddToWishlist = async (productId: string) => {
+    try {
+      // Implement add to wishlist logic
+      const response = await fetch('/api/v1/wishlist', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ productId }),
+      });
+      
+      if (response.ok) {
+        // Show success message
+        alert('Product added to wishlist!');
+      }
+    } catch (error) {
+      // Handle error silently
+      console.error('Error adding to wishlist:', error);
+    }
   };
 
   return (
@@ -164,10 +198,10 @@ export default function Home() {
       />
 
       {/* USP Section */}
-      <section className="section-padding bg-white">
+      <section className="section-padding bg-white" aria-labelledby="usp-heading">
         <div className="container-max">
-          <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
+          <div className="text-center mb-16 animate-fade-in">
+            <h2 id="usp-heading" className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
               Why Choose Newhill Spices?
             </h2>
             <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
@@ -200,10 +234,10 @@ export default function Home() {
       </section>
 
       {/* Featured Products */}
-      <section className="section-padding bg-neutral-50">
+      <section className="section-padding bg-neutral-50" aria-labelledby="featured-heading">
         <div className="container-max">
           <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
+            <h2 id="featured-heading" className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
               Featured Products
             </h2>
             <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
@@ -245,10 +279,10 @@ export default function Home() {
       </section>
 
       {/* How It Works */}
-      <section className="section-padding bg-white">
+      <section className="section-padding bg-white" aria-labelledby="process-heading">
         <div className="container-max">
           <div className="text-center mb-16">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
+            <h2 id="process-heading" className="font-heading text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
               How It Works
             </h2>
             <p className="text-lg text-neutral-600 max-w-3xl mx-auto">
@@ -298,10 +332,10 @@ export default function Home() {
       />
 
       {/* Trust Indicators */}
-      <section className="section-padding bg-emerald-600 text-white">
+      <section className="section-padding bg-gradient-to-r from-emerald-600 via-emerald-700 to-emerald-600 text-white" aria-labelledby="trust-heading">
         <div className="container-max">
           <div className="text-center mb-12">
-            <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
+            <h2 id="trust-heading" className="font-heading text-3xl md:text-4xl font-bold mb-4">
               Trusted by Thousands
             </h2>
             <p className="text-lg text-emerald-100 max-w-3xl mx-auto">
@@ -331,26 +365,28 @@ export default function Home() {
       </section>
 
       {/* Newsletter CTA */}
-      <section className="section-padding bg-neutral-900 text-white">
+      <section className="section-padding bg-neutral-900 text-white" aria-labelledby="newsletter-heading">
         <div className="container-max text-center">
-          <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
+          <h2 id="newsletter-heading" className="font-heading text-3xl md:text-4xl font-bold mb-4">
             Stay Updated with Our Latest Spices
           </h2>
           <p className="text-lg text-neutral-300 mb-8 max-w-2xl mx-auto">
             Get exclusive offers, new product announcements, and cooking tips delivered to your inbox.
           </p>
-          <div className="max-w-md mx-auto">
+          <form className="max-w-md mx-auto" aria-label="Newsletter signup">
             <div className="flex gap-2">
               <input
                 type="email"
                 placeholder="Enter your email"
                 className="flex-1 px-4 py-3 rounded-lg border-0 focus:ring-2 focus:ring-emerald-500 text-neutral-900"
+                aria-label="Email address"
+                required
               />
-              <button className="btn-gold px-6 py-3 whitespace-nowrap">
+              <button type="submit" className="btn-gold px-6 py-3 whitespace-nowrap">
                 Subscribe
               </button>
             </div>
-          </div>
+          </form>
         </div>
       </section>
     </div>

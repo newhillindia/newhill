@@ -168,18 +168,16 @@ export default function ProductsPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          productId,
-          variantId,
-          quantity: 1,
-        }),
-      });
-
-      if (response.ok) {
-        // Show success message or update cart UI
-        console.log('Added to cart successfully');
+          'Authorization': `Be      if (response.ok) {
+        // Show success notification
+        alert('Product added to cart successfully!');
+      } else {
+        alert('Failed to add product to cart. Please try again.');
+      }
+    } catch (error) {
+      alert('An error occurred while adding to cart. Please try again.');
+      console.error('Error adding to cart:', error);
+    }Added to cart successfully');
       } else {
         console.error('Failed to add to cart');
       }
@@ -192,15 +190,15 @@ export default function ProductsPage() {
     try {
       const response = await fetch('/api/v1/wishlist', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ productId }),
-      });
-
-      if (response.ok) {
-        console.log('Added to wishlist successfully');
+        headers: {      if (response.ok) {
+        alert('Product added to wishlist successfully!');
+      } else {
+        alert('Failed to add product to wishlist. Please try again.');
+      }
+    } catch (error) {
+      alert('An error occurred while adding to wishlist. Please try again.');
+      console.error('Error adding to wishlist:', error);
+    }ded to wishlist successfully');
       } else {
         console.error('Failed to add to wishlist');
       }

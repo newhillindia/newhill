@@ -134,74 +134,71 @@ export default function Hero3D({
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resizeCanvas);
     };
-  }, [showParticles, particles]);
-
-  const handleCTAClick = (ctaType: 'primary' | 'secondary') => {
-    if (onCTAClick) {
-      onCTAClick(ctaType);
-    }
-  };
-
-  return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden hero-3d-container">
-      {/* Background Image */}
+  }, [showParticles, part  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden hero-3d-container" aria-label="Hero section">);
+       {/* Background Image */}
       {backgroundImage && (
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0" aria-hidden="true">
           <img
             src={backgroundImage}
-            alt="Hero background"
+            alt=""
             className="w-full h-full object-cover"
+            loading="eager"
           />
           <div className="absolute inset-0 bg-emerald-600/20" />
         </div>
-      )}
-
-      {/* Particles Canvas */}
+      )}        class      {/* Particles Canvas */}
       {showParticles && (
         <canvas
           ref={canvasRef}
           className="absolute inset-0 z-10 w-full h-full"
           style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 1s ease-in-out' }}
+          aria-hidden="true"
+          role="presentation"
+        />
+      )}ame="absolute inset-0 z-10 w-full h-full"
+          style={{ opacity: isLoaded ? 1 : 0, transition: 'opacity 1s ease-in-out' }}
         />
       )}
 
-      {/* Content */}
-      <div className="relative z-20 container-max section-padding text-center text-white">
-        <div className="max-w-4xl mx-auto">
-          {/* Trust Badge */}
-          <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8">
-            <Sparkles className="w-4 h-4 text-gold" />
-            <span className="text-sm font-medium">Premium Quality Since 1995</span>
-          </div>
-
-          {/* Main Heading */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight">
+      {/* Conte          {/* Trust Badge */}
+          <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-8 animate-fade-in shadow-lg" role="banner">
+            <Sparkles className="w-4 h-4 text-gold animate-pulse-slow" aria-hidden="true" />
+            <span className="text-sm font-semibold">Premium Quality Since 1995</span>
+          </div>    <Sp          {/* Main Heading */}
+          <h1 className="text-4xl md:text-6xl lg:text-7xl font-heading font-bold mb-6 leading-tight animate-slide-up">
             {title}
           </h1>
 
           {/* Subtitle */}
-          <p className="text-lg md:text-xl text-emerald-100 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg md:text-xl text-emerald-100 mb-12 max-w-3xl mx-auto leading-relaxed animate-slide-up" style={{ animationDelay: '0.1s' }}>
             {subtitle}
-          </p>
-
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-            <button
+          </p>ubtitle */}          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-6 animate-scale-in" style={{ animationDelay: '0.2s' }}>
+            <a
+              href={primaryCTA.href}
               onClick={() => handleCTAClick('primary')}
-              className="btn-primary text-lg px-8 py-4 bg-white text-emerald-600 hover:bg-emerald-50 group"
+              className="btn-primary text-lg px-8 py-4 bg-white text-emerald-600 hover:bg-emerald-50 group shadow-lg hover:shadow-xl"
+              aria-label={`${primaryCTA.text} - Browse our products`}
             >
               <span className="flex items-center space-x-2">
                 <span>{primaryCTA.text}</span>
-                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" />
+                <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform duration-200" aria-hidden="true" />
               </span>
-            </button>
+            </a>
             
-            <button
+            <a
+              href={secondaryCTA.href}
               onClick={() => handleCTAClick('secondary')}
-              className="btn-secondary text-lg px-8 py-4 bg-transparent border-2 border-white text-white hover:bg-white hover:text-emerald-600 group"
+              className="btn-secondary text-lg px-8 py-4 bg-transparent border-2 border-white text-white hover:bg-white hover:text-emerald-600 group shadow-lg hover:shadow-xl"
+              aria-label={`${secondaryCTA.text} - Learn more about us`}
             >
               <span className="flex items-center space-x-2">
-                <Play className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+                <Play className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" aria-hidden="true" />
+                <span>{secondaryCTA.text}</span>
+              </span>
+            </a>
+          </div>-hover:scale-110 transition-transform duration-200" />
                 <span>{secondaryCTA.text}</span>
               </span>
             </button>
@@ -229,17 +226,14 @@ export default function Hero3D({
               <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4">
                 <span className="text-2xl">🚚</span>
               </div>
-              <h3 className="font-heading text-lg font-semibold mb-2">Fast Delivery</h3>
-              <p className="text-sm text-emerald-100">Free shipping across India</p>
-            </div>
+              <h3 className="font-heading text-lg font-semibold mb-2"      {/* Scroll Indicator */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20" aria-hidden="true">
+        <div className="animate-bounce">
+          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center shadow-md">
+            <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse" />
           </div>
         </div>
-      </div>
-
-      {/* Scroll Indicator */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20">
-        <div className="animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
+      </div> border-white/50 rounded-full flex justify-center">
             <div className="w-1 h-3 bg-white/50 rounded-full mt-2 animate-pulse" />
           </div>
         </div>

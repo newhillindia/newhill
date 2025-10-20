@@ -1,0 +1,26 @@
+# Newhill Spices - robots.txt
+# Allow all bots to crawl the site
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://newhillspices.com/sitemap.xml
+
+# Crawl-delay for good bot behavior
+Crawl-delay: 1
+
+# Disallow admin and API routes
+Disallow: /admin/
+Disallow: /api/
+
+# Disallow checkout and cart pages to prevent indexing of dynamic content
+Disallow: /cart
+Disallow: /checkout
+Disallow: /account
+
+# Allow product and catalog pages
+Allow: /products
+Allow: /about
+Allow: /contact
+Allow: /faq

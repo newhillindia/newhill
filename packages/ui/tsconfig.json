@@ -13,7 +13,7 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "moduleResolution": "Bundler"
+    "moduleResolution": "bundler"
   },
   "include": ["src/**/*"],
   "exclude": ["dist", "node_modules"]

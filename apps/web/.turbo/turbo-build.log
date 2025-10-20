@@ -1,0 +1,29 @@
+
+> @newhill/web@1.0.0 build
+> next build
+
+ ⨯ Failed to load next.config.js, see more info here https://nextjs.org/docs/messages/next-config-error
+
+> Build error occurred
+/workspace/apps/web/next.config.js:15
+  },= 'true'
+    ^
+
+SyntaxError: Unexpected token '='
+    at wrapSafe (node:internal/modules/cjs/loader:1638:18)
+    at Module._compile (node:internal/modules/cjs/loader:1680:20)
+    at Object..js (node:internal/modules/cjs/loader:1839:10)
+    at Module.load (node:internal/modules/cjs/loader:1441:32)
+    at Function._load (node:internal/modules/cjs/loader:1263:12)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at cjsLoader (node:internal/modules/esm/translators:309:5)
+    at ModuleWrap.<anonymous> (node:internal/modules/esm/translators:202:7)
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /workspace/apps/web
+npm error workspace @newhill/web@1.0.0
+npm error location /workspace/apps/web
+npm error command failed
+npm error command sh -c next build

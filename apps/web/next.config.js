@@ -2,16 +2,18 @@
 const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
+  images: {
   experimental: {
-    appDir: true,  images: {
+    appDir: true,
+  },
+  images: {
     domains: [
       process.env.CLOUDFRONT_DOMAIN || 'localhost',
       process.env.S3_BUCKET_DOMAIN || 'localhost',
-      'res.cloudinary.com', // Cloudinary domain
-      'i.ibb.co', // Image hosting for logo
+      'res.cloudinary.com',
+      'i.ibb.co',
     ],
-    unoptimized: process.env.NODE_ENV === 'production' && process.env.USE_CLOUDFRONT === 'true'
-  },= 'true'
+    unoptimized: process.env.NODE_ENV === 'production' && process.env.USE_CLOUDFRONT === 'true',
   },
   env: {
     CUSTOM_KEY: process.env.CUSTOM_KEY,

@@ -43,7 +43,7 @@
     "axios": "^1.6.2",
     "stripe": "^14.7.0",
     "razorpay": "^2.9.2",
-    "@newhill/shared": "workspace:*"
+    "@newhill/shared": "file:../../packages/shared"
   },
   "devDependencies": {
     "@types/node": "^20.10.0",
